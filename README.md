@@ -36,6 +36,9 @@ jobs:
 ## AWS Trust Policies
 
 Don't forget to edit the role your pipeline assumes to trust your repo and branch. Add each branch you have, or use `*` but be wary that this violates the principle of least privilege.
+
+Repeated log lines of "Assuming role with OIDC" with a final timeout or the error "Could not assume role with OIDC: Not authorized to perform sts:AssumeRoleWithWebIdentity" indicative of this.
+
 ```
 {
     "Effect": "Allow",
