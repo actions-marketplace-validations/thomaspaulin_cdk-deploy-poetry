@@ -35,7 +35,7 @@ jobs:
 ```
 ## AWS Trust Policies
 
-Don't forget to edit the role your pipeline assumes to trust your repo and branch:
+Don't forget to edit the role your pipeline assumes to trust your repo and branch. Add each branch you have, or use `*` but be wary that this violates the principle of least privilege.
 ```
 {
     "Effect": "Allow",
