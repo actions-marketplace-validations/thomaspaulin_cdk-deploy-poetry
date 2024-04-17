@@ -33,3 +33,21 @@ jobs:
           aws-account-id: $${{ secrets.AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 ```
+## AWS Trust Policies
+
+Don't forget to edit the role your pipeline assumes to trust your repo and branch:
+```
+{
+    "Effect": "Allow",
+    "Principal": {
+        "Federated": "<your-identity-provider-arn-goes-here>/token.actions.githubusercontent.com"
+    },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+        "StringLike": {
+            "token.actions.githubusercontent.com:sub": "repo:<github-org-or-username>/<repo-name>:ref:refs/heads/<branch-name>",
+            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        }
+    }
+}
+```
