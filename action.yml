@@ -1,0 +1,74 @@
+name: "AWS CDK Deploy - Poetry"
+description: "Deploy an AWS CDK project which is written in Python"
+inputs:
+    python-version:
+        description: "The Python3 version to use. Use 3.x for the latest"
+        required: true
+        default: "3.x"
+    working-directory:
+        description: "The working directory. This should contain your Python entrypoint and your poetry.lock file. Default is the current directory"
+        required: false
+        default: "."
+    aws-account-id:
+        description: "The AWS account to deploy into"
+        required: true
+    cdk-stacks:
+        description: "The CDK Stack to deploy. Defaults to all"
+        required: false
+        default: "*"
+    # todo cdk out templates
+runs:
+    using: "composite"
+    steps:
+        - name: Install poetry
+          shell: bash
+          run: pipx install poetry
+        - name: "Set up latest Python 3"
+          id: setup-python
+          uses: actions/setup-python@v5
+          env:
+            AGENT_TOOLSDIRECTORY: ${{ runner.tool_cache }}
+          with:
+            python-version: ${{ inputs.python-version }}
+            cache: "poetry"
+            cache-dependency-path: infra/poetry.lock
+            
+        - name: Load cached venv
+          id: cached-poetry-dependencies
+          uses: actions/cache@v4
+          with:
+            path: .venv
+            key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          
+        - name: Install dependencies
+          if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+          working-directory: infra
+          shell: bash
+          run: poetry install --no-interaction --no-root
+          
+        - name: Install project
+          working-directory: infra
+          shell: bash
+          run: poetry install --no-interaction
+
+        - name: Install Node for AWS CDK CLI
+          uses: actions/setup-node@v2
+          with:
+            node-version: "20"
+
+        - name: Install AWS CDK CLI
+          shell: bash
+          run: |
+            npm install -g aws-cdk
+            cdk --version
+            
+        # todo CDK args and context keys as inputs
+        - name: "AWS CDK Deploy"
+          shell: bash
+          working-directory: infra
+          run: |
+            poetry run cdk deploy "${{ inputs.cdk-stacks }}" \
+                --require-approval never \
+                --asset-parallelism \
+                --context devAccountId=${{ inputs.aws-account-id }} \
+                -vv
