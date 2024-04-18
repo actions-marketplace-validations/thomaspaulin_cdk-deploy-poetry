@@ -1,5 +1,8 @@
 name: "AWS CDK Deploy - Poetry"
 description: "Deploy an AWS CDK project which is written in Python"
+branding:
+    icon: "corner-right-up"
+    color: "yellow"
 inputs:
     python-version:
         description: "The Python3 version to use. Use 3.x for the latest"
